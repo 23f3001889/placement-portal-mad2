@@ -1,2 +1,6 @@
-# placement-portal-mad1
-A Flask-based placement portal for managing campus recruitment, companies, students, and placement drives.
+# Placement Portal
+
+A Flask-based web application for managing campus recruitment activities.  
+It allows institutes to manage students, companies, and placement drives through a centralized system.
+
+Built using Flask, Jinja2, Bootstrap, and SQLite.
