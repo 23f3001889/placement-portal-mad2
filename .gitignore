@@ -1,22 +1,15 @@
-# Virtual environment
 venv/
 
-# Database file
 *.db
 
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
 
-# Resume uploads (keep the folder, ignore the files)
 static/uploads/resumes/*
 !static/uploads/resumes/.gitkeep
 
-# Environment variables / secrets
 .env
-
-# VS Code / IDE
 .vscode/
 .idea/
 
