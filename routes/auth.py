@@ -9,7 +9,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 # helper fn
 def redirect_to_dashboard():
     if isinstance(current_user, Admin):
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('admin.dashboard'))
     elif isinstance(current_user, Company):
         return redirect(url_for('company_dashboard'))
     elif isinstance(current_user, Student):

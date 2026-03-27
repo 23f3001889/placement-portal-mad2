@@ -38,9 +38,6 @@
 
           {% if current_user.__class__.__name__ == 'Admin' %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.companies') }}"><i class="bi bi-building"></i> Companies</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.students') }}"><i class="bi bi-people"></i> Students</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.drives') }}"><i class="bi bi-briefcase"></i> Drives</a></li>
 
           {% elif current_user.__class__.__name__ == 'Company' %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('company.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>

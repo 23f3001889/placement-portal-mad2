@@ -1,8 +1,9 @@
-from flask import Flask, redirect, url_for, render_template_string
+from flask import Flask, redirect, url_for, render_template_string, abort
 from models import db, Admin, Company, Student
-from flask_login import LoginManager, login_required
+from flask_login import LoginManager, login_required, current_user
 
 from routes.auth import auth_bp
+from routes.admin import admin_bp
  
 login_manager = LoginManager()
 
@@ -33,6 +34,8 @@ def create_app():
     
     
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+
 
     STUB = '''
     <!DOCTYPE html>
@@ -54,24 +57,22 @@ def create_app():
     def index():
         return redirect(url_for('auth.login'))
  
-    @app.route('/admin/dashboard')
-    @login_required
-    def admin_dashboard():
-        return render_template_string(STUB, title='Admin')
- 
     @app.route('/company/dashboard')
     @login_required
     def company_dashboard():
+        if not isinstance(current_user, Company):
+            abort(403)
         return render_template_string(STUB, title='Company')
- 
+
     @app.route('/student/dashboard')
     @login_required
     def student_dashboard():
+        if not isinstance(current_user, Student):
+            abort(403)
         return render_template_string(STUB, title='Student')
- 
+
     return app
- 
- 
+
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
