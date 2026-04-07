@@ -78,3 +78,11 @@ def reject_drive(drive_id):
     db.session.commit()
     flash(f'Drive "{drive.job_title}" rejected.', 'warning')
     return redirect(request.referrer or url_for('admin.dashboard'))
+
+# 3) student
+@admin_bp.route('/students')
+@login_required
+@admin_required
+def students():
+    students = Student.query.order_by(Student.created_at.desc()).all()
+    return render_template('admin/students.html', students=students, q='')
