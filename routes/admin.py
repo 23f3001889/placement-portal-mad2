@@ -24,16 +24,18 @@ def dashboard():
     total_drives    = PlacementDrive.query.count()
     total_apps      = Application.query.count()
     pending_companies = Company.query.filter_by(approval_status='Pending').all()
+    pending_drives    = PlacementDrive.query.filter_by(status='Pending').all()
 
     return render_template('admin/dashboard.html',
         total_students=total_students,
         total_companies=total_companies,
         total_drives=total_drives,
         total_apps=total_apps,
-        pending_companies=pending_companies
+        pending_companies=pending_companies,
+        pending_drives=pending_drives
     )
 
-
+# 1) Approve/Reject Companies
 @admin_bp.route('/company/<int:company_id>/approve', methods=['POST'])
 @login_required
 @admin_required
@@ -54,3 +56,25 @@ def reject_company(company_id):
     db.session.commit()
     flash(f'{company.company_name} has been rejected.', 'warning')
     return redirect(url_for('admin.dashboard'))
+
+# 2) Approve/Reject Drives
+@admin_bp.route('/drive/<int:drive_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_drive(drive_id):
+    drive = PlacementDrive.query.get_or_404(drive_id)
+    drive.status = 'Approved'
+    db.session.commit()
+    flash(f'Drive "{drive.job_title}" approved.', 'success')
+    return redirect(request.referrer or url_for('admin.dashboard'))
+
+
+@admin_bp.route('/drive/<int:drive_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_drive(drive_id):
+    drive = PlacementDrive.query.get_or_404(drive_id)
+    drive.status = 'Rejected'
+    db.session.commit()
+    flash(f'Drive "{drive.job_title}" rejected.', 'warning')
+    return redirect(request.referrer or url_for('admin.dashboard'))
