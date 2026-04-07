@@ -84,5 +84,17 @@ def reject_drive(drive_id):
 @login_required
 @admin_required
 def students():
-    students = Student.query.order_by(Student.created_at.desc()).all()
-    return render_template('admin/students.html', students=students, q='')
+    q = request.args.get('q', '').strip()
+    query = Student.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(
+            db.or_(
+                Student.full_name.ilike(like),
+                Student.email.ilike(like),
+                Student.phone.ilike(like),
+                db.cast(Student.id, db.String).ilike(like),
+            )
+        )
+    students = query.order_by(Student.created_at.desc()).all()
+    return render_template('admin/students.html', students=students, q=q)
