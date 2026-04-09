@@ -13,7 +13,7 @@ def redirect_to_dashboard():
     elif isinstance(current_user, Company):
         return redirect(url_for('company.dashboard'))
     elif isinstance(current_user, Student):
-        return redirect(url_for('student_dashboard'))
+        return redirect(url_for('student.dashboard'))
     return redirect(url_for('auth.login'))
 
 
