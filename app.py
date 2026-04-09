@@ -4,7 +4,7 @@ from flask_login import LoginManager, login_required, current_user
 
 from routes.auth import auth_bp
 from routes.admin import admin_bp
-
+from routes.company import company_bp  
 login_manager = LoginManager()
 
 def create_app():
@@ -40,6 +40,7 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(company_bp) 
 
     STUB = '''
     <!DOCTYPE html>
@@ -60,15 +61,6 @@ def create_app():
     @app.route('/')
     def index():
         return redirect(url_for('auth.login'))
-
-    @app.route('/company/dashboard')
-    @login_required
-    def company_dashboard():
-        if not isinstance(current_user, Company):
-            abort(403)
-        if current_user.is_blacklisted:
-            abort(403)
-        return render_template_string(STUB, title='Company')
 
     @app.route('/student/dashboard')
     @login_required

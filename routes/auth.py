@@ -11,7 +11,7 @@ def redirect_to_dashboard():
     if isinstance(current_user, Admin):
         return redirect(url_for('admin.dashboard'))
     elif isinstance(current_user, Company):
-        return redirect(url_for('company_dashboard'))
+        return redirect(url_for('company.dashboard'))
     elif isinstance(current_user, Student):
         return redirect(url_for('student_dashboard'))
     return redirect(url_for('auth.login'))

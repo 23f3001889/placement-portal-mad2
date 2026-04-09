@@ -98,3 +98,66 @@ def students():
         )
     students = query.order_by(Student.created_at.desc()).all()
     return render_template('admin/students.html', students=students, q=q)
+
+@admin_bp.route('/companies')
+@login_required
+@admin_required
+def companies():
+    q = request.args.get('q', '').strip()
+    query = Company.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(
+            db.or_(
+                Company.company_name.ilike(like),
+                Company.industry.ilike(like),
+                db.cast(Company.id, db.String).ilike(like),
+            )
+        )
+    companies = query.order_by(Company.created_at.desc()).all()
+    return render_template('admin/companies.html', companies=companies, q=q)
+
+@admin_bp.route('/student/<int:student_id>/blacklist', methods=['POST'])
+@login_required
+@admin_required
+def blacklist_student(student_id):
+    student = Student.query.get_or_404(student_id)
+    student.is_blacklisted = not student.is_blacklisted
+    db.session.commit()
+    state = 'blacklisted' if student.is_blacklisted else 'unblacklisted'
+    flash(f'{student.full_name} has been {state}.', 'warning')
+    return redirect(request.referrer or url_for('admin.students'))
+
+
+@admin_bp.route('/student/<int:student_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_student(student_id):
+    student = Student.query.get_or_404(student_id)
+    db.session.delete(student)
+    db.session.commit()
+    flash('Student deleted.', 'danger')
+    return redirect(url_for('admin.students'))
+
+
+@admin_bp.route('/company/<int:company_id>/blacklist', methods=['POST'])
+@login_required
+@admin_required
+def blacklist_company(company_id):
+    company = Company.query.get_or_404(company_id)
+    company.is_blacklisted = not company.is_blacklisted
+    db.session.commit()
+    state = 'blacklisted' if company.is_blacklisted else 'unblacklisted'
+    flash(f'{company.company_name} has been {state}.', 'warning')
+    return redirect(request.referrer or url_for('admin.companies'))
+
+
+@admin_bp.route('/company/<int:company_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_company(company_id):
+    company = Company.query.get_or_404(company_id)
+    db.session.delete(company)
+    db.session.commit()
+    flash('Company deleted.', 'danger')
+    return redirect(url_for('admin.companies'))
