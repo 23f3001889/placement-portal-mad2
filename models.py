@@ -94,3 +94,26 @@ class Application(db.Model):
     __table_args__ = (
         db.UniqueConstraint('student_id', 'drive_id', name='unique_student_drive'),
     )
+
+class Interview(db.Model):
+    __tablename__ = 'interview'
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
+    scheduled_at = db.Column(db.DateTime, nullable=False)
+    mode = db.Column(db.String(50))               # 'Online' | 'In-person'
+    location_or_link = db.Column(db.String(300))
+    notes = db.Column(db.Text)
+    status = db.Column(db.String(20), default='Scheduled')  # Scheduled | Completed | Cancelled
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+ 
+class Placement(db.Model):
+    __tablename__ = 'placement'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    drive_id = db.Column(db.Integer, db.ForeignKey('placement_drive.id'), nullable=False)
+    position = db.Column(db.String(150))
+    salary = db.Column(db.String(100))
+    joining_date = db.Column(db.Date)
+    offer_letter_path = db.Column(db.String(300))
+    placed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
