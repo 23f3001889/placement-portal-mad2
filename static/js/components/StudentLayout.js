@@ -1,6 +1,5 @@
 /**
  * StudentLayout.js — navbar shell wrapping all /student/* pages.
- * Defines a global `StudentLayout` component consumed by router.js.
  */
 const StudentLayout = {
   methods: {

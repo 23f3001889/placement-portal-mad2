@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_from_directory, current_app
 from routes.decorators import admin_required
-from models import db, Company, Student, PlacementDrive, Application
+from models import db, Company, Student, PlacementDrive, Application, Notification
 from constants import ApprovalStatus, DriveStatus
 from cache_keys import (
     student_drives_key, admin_companies_key, admin_students_key,
@@ -121,7 +121,7 @@ def dashboard():
     ).order_by(PlacementDrive.created_at.desc()).limit(5).all()
 
     pending_companies_count = Company.query.filter_by(approval_status=ApprovalStatus.PENDING).count()
-    pending_drives_count    = PlacementDrive.query.filter_by(status=DriveStatus.PENDING).count()
+    pending_drives_count = PlacementDrive.query.filter_by(status=DriveStatus.PENDING).count()
 
     return jsonify({
         'total_students': total_students,
@@ -477,3 +477,64 @@ def search():
         return jsonify([serialize_student_summary(s) for s in results]), 200
 
     return jsonify({'msg': "type must be 'company' or 'student'."}), 400
+
+# ── Notifications ────────────────────────────────────────────────────────────
+# Admin-facing in-app notifications — currently used for backend-job status
+# (e.g. "email delivery disabled/failed" from tasks.py) so failures surface
+# somewhere visible instead of only ever appearing in server console logs.
+
+def serialize_notification(n):
+    return {
+        'id': n.id,
+        'message': n.message,
+        'is_read': n.is_read,
+        'created_at': n.created_at.isoformat() if n.created_at else None,
+    }
+
+
+@admin_bp.route('/notifications')
+@admin_required
+def list_notifications():
+    notifs = Notification.query.filter_by(
+        user_type='admin'
+    ).order_by(Notification.created_at.desc()).all()
+
+    for n in notifs:
+        n.is_read = True
+    db.session.commit()
+
+    return jsonify([serialize_notification(n) for n in notifs]), 200
+
+
+@admin_bp.route('/broadcast', methods=['POST'])
+@admin_required
+def broadcast_message():
+    from tasks import send_custom_broadcast
+    data = request.get_json() or {}
+    message  = (data.get('message') or '').strip()
+    audience = data.get('audience')  # 'student' or 'company'
+
+    if not message or audience not in ('student', 'company'):
+        return jsonify({'msg': 'message and audience (student/company) are required.'}), 400
+
+    send_custom_broadcast.delay(message, audience)
+    return jsonify({'msg': f'Broadcast queued for all {audience}s.'}), 202
+
+
+@admin_bp.route('/trigger-monthly-report', methods=['POST'])
+@admin_required
+def trigger_monthly_report():
+    from tasks import send_monthly_report
+    try:
+        res = send_monthly_report.delay()
+        return jsonify({
+            'msg': 'Monthly report generation triggered successfully.',
+            'task_id': res.id
+        }), 202
+    except Exception:
+        # Fallback to synchronous execution if Celery broker is offline
+        result = send_monthly_report()
+        return jsonify({
+            'msg': 'Monthly report generated synchronously.',
+            'result': result
+        }), 200

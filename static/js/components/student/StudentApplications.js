@@ -3,7 +3,6 @@
  * Status-count stat cards, full table with per-row cover-letter modal,
  * inline personal-note save, offer Accept/Decline for Selected rows,
  * and an expandable status-history timeline per application.
- * Defines a global `StudentApplications` component consumed by router.js.
  */
 const StudentApplications = {
   data: function () {

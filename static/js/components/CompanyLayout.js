@@ -1,6 +1,5 @@
 /**
  * CompanyLayout.js — navbar shell wrapping all /company/* pages.
- * Defines a global `CompanyLayout` component consumed by router.js.
  */
 const CompanyLayout = {
   methods: {

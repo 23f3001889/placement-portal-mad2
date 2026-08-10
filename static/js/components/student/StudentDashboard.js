@@ -2,7 +2,6 @@
  * StudentDashboard.js — GET /api/student/dashboard.
  * Four stat cards, time-sensitive pending-offer alerts, available drives table
  * (with inline Apply), and recent applications table.
- * Defines a global `StudentDashboard` component consumed by router.js.
  */
 const StudentDashboard = {
   data: function () {

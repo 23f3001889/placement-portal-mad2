@@ -1,7 +1,5 @@
-/**
- * AdminDashboard.js — GET /api/admin/dashboard, stat cards + pending approval tables.
- * Defines a global `AdminDashboard` component consumed by router.js.
- */
+// AdminDashboard.js — GET /api/admin/dashboard, stat cards + pending approval tables
+
 const AdminDashboard = {
   data: function () {
     return {

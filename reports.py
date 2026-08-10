@@ -1,23 +1,13 @@
 """
-reports.py — rendering helpers for the monthly placement report (Milestone 7).
-
-Kept separate from tasks.py so the "what does the report look like" concern
-(HTML template + PDF layout) doesn't get tangled with the "when does the
-report run / who does it query" concern. tasks.send_monthly_report imports
-from here.
-
-Two outputs per report:
-  - an HTML string, used as the email body
-  - a PDF (bytes), attached to the same email and also saved under
-    static/reports/ so it's inspectable in dev even when MAIL_USERNAME
-    isn't configured and _send_report_email() no-ops the actual send.
+reports.py — HTML template & PDF layout generators for monthly reports.
+Used by tasks.py to format email bodies and PDF attachments.
 """
 from datetime import datetime, timezone
 
 from fpdf import FPDF
 
 
-# ── HTML rendering ───────────────────────────────────────────────────────────
+# ── HTML Rendering ───────────────────────────────────────────────────────────
 
 def _html_shell(title, month_label, rows_html, table_rows_html=''):
     return f"""\
@@ -100,7 +90,7 @@ def render_company_report_html(month_label, company_name, stats, per_drive_rows)
     return _html_shell(f'Monthly Placement Report — {company_name}', month_label, rows, drive_table)
 
 
-# ── PDF rendering (fpdf2 — pure Python, no system deps) ─────────────────────
+# ── PDF Rendering (fpdf2) ─────────────────────────────────────────────────────
 
 class _ReportPDF(FPDF):
     def header(self):
@@ -123,23 +113,12 @@ class _ReportPDF(FPDF):
 
 
 def _pdf_safe(text):
-    """fpdf2's built-in core fonts (Helvetica etc.) only support Latin-1.
-    Company names, student names, and job titles come from user input and
-    could contain em-dashes, curly quotes, emoji, or non-Latin scripts —
-    without this, a single unusual character anywhere in the report data
-    would raise FPDFUnicodeEncodingException and fail the whole Celery task.
-    Unsupported characters are replaced with '?' rather than crashing; the
-    HTML email body (not subject to this limitation) always has the exact
-    original text, so nothing is silently lost, only the PDF degrades."""
+    """Encodes non-Latin1 text safely for fpdf2 core fonts without crashing."""
     return str(text).encode('latin-1', errors='replace').decode('latin-1')
 
 
 def build_pdf_report(title, subtitle, stat_rows, table_title=None, table_headers=None, table_rows=None):
-    """
-    stat_rows: list of (label, value) tuples -> rendered as a simple key/value block
-    table_*:   optional secondary table (used for the company per-drive breakdown)
-    Returns raw PDF bytes.
-    """
+    """Generates PDF bytes for monthly reports with key-value stats and optional table."""
     pdf = _ReportPDF()
     pdf.title_text = title
     pdf.subtitle_text = subtitle

@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask_restful import Api, Resource, reqparse
 from models import db, Student, Company, PlacementDrive, Application
 from werkzeug.security import generate_password_hash
+from routes.decorators import admin_required
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 api = Api(api_bp)
@@ -25,6 +26,7 @@ create_drive_parser.add_argument('status', type=str)
 
 
 class StatsResource(Resource):
+    method_decorators = [admin_required]
     def get(self):
         return {
             'students': Student.query.count(),
@@ -35,6 +37,7 @@ class StatsResource(Resource):
 
 # students
 class StudentListResource(Resource):
+    method_decorators = [admin_required]
     def get(self):
         students = Student.query.all()
         return [{'id': s.id, 'name': s.full_name, 'email': s.email} for s in students]
@@ -65,6 +68,7 @@ class StudentListResource(Resource):
 
 
 class StudentResource(Resource):
+    method_decorators = [admin_required]
     def get(self, student_id):
         s = Student.query.get_or_404(student_id)
         return {'id': s.id, 'name': s.full_name, 'email': s.email}
@@ -91,6 +95,7 @@ class StudentResource(Resource):
 
 #Drives
 class DriveListResource(Resource):
+    method_decorators = [admin_required]
     def get(self):
         drives = PlacementDrive.query.all()
         return [{'id': d.id, 'title': d.job_title, 'status': d.status} for d in drives]
@@ -117,6 +122,7 @@ class DriveListResource(Resource):
         return {'id': d.id, 'message': 'drive created'}, 201
 
 class DriveResource(Resource):
+    method_decorators = [admin_required]
     def get(self, drive_id):
         d = PlacementDrive.query.get_or_404(drive_id)
         return {

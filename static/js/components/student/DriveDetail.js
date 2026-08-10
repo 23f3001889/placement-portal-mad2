@@ -2,7 +2,6 @@
  * DriveDetail.js — GET /api/student/drives/:id + POST /api/student/applications.
  * Shows drive details and a cover-letter apply form, or an already-applied
  * status block if the student has previously applied.
- * Defines a global `DriveDetail` component consumed by router.js.
  */
 const DriveDetail = {
   data: function () {

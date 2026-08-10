@@ -1,7 +1,5 @@
-/**
- * AdminApplications.js — full applications list, student name links to detail page.
- * Defines a global `AdminApplications` component consumed by router.js.
- */
+//AdminApplications.js — full applications list, student name links to detail page
+
 const AdminApplications = {
   data: function () {
     return {

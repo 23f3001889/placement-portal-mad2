@@ -7,6 +7,7 @@ class ApplicationStatus:
     PLACED              = 'Placed'
 
     ALL = [APPLIED, SHORTLISTED, INTERVIEW_SCHEDULED, SELECTED, REJECTED, PLACED]
+    
     # Statuses a company can set; Placed is set via the Placement model, not directly
     VALID_TRANSITIONS = [APPLIED, SHORTLISTED, INTERVIEW_SCHEDULED, SELECTED, REJECTED]
 

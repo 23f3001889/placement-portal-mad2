@@ -3,7 +3,6 @@
  * Lists confirmed placements. The "Offer Letter" button hits
  * /api/student/placements/<id>/offer-letter and shows "Not available yet"
  * on a 404 rather than a broken download.
- * Defines a global `StudentPlacements` component consumed by router.js.
  */
 const StudentPlacements = {
   data: function () {

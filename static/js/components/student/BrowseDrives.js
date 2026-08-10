@@ -2,7 +2,6 @@
  * BrowseDrives.js — GET /api/student/drives with ?q= query-string sync.
  * Fetches both drives and applied_drive_ids in one call so Applied badges
  * render without extra round-trips per row.
- * Defines a global `BrowseDrives` component consumed by router.js.
  */
 const BrowseDrives = {
   data: function () {

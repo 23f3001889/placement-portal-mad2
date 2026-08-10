@@ -72,6 +72,7 @@ def serialize_drive(d):
         'job_title': d.job_title,
         'job_description': d.job_description,
         'eligibility_criteria': d.eligibility_criteria,
+        'min_cgpa': d.min_cgpa,
         'required_skills': d.required_skills,
         'salary_range': d.salary_range,
         'location': d.location,
@@ -211,11 +212,21 @@ def create_drive():
     if deadline <= date.today():
         return jsonify({'msg': 'Deadline must be a future date.'}), 400
 
+    min_cgpa = None
+    if data.get('min_cgpa') not in (None, ''):
+        try:
+            min_cgpa = float(data.get('min_cgpa'))
+            if not (0 <= min_cgpa <= 10):
+                return jsonify({'msg': 'min_cgpa must be between 0 and 10.'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'msg': 'Invalid value for min_cgpa.'}), 400
+
     drive = PlacementDrive(
         company_id=company.id,
         job_title=job_title,
         job_description=job_desc,
         eligibility_criteria=(data.get('eligibility_criteria') or '').strip(),
+        min_cgpa=min_cgpa,
         required_skills=(data.get('required_skills') or '').strip(),
         salary_range=(data.get('salary_range') or '').strip(),
         application_deadline=deadline,
@@ -281,6 +292,18 @@ def edit_drive(drive_id):
             drive.application_deadline = date.fromisoformat(data['application_deadline'])
         except (ValueError, TypeError):
             return jsonify({'msg': 'Invalid date format for application_deadline.'}), 400
+
+    if 'min_cgpa' in data:
+        if data.get('min_cgpa') in (None, ''):
+            drive.min_cgpa = None
+        else:
+            try:
+                new_min_cgpa = float(data.get('min_cgpa'))
+                if not (0 <= new_min_cgpa <= 10):
+                    return jsonify({'msg': 'min_cgpa must be between 0 and 10.'}), 400
+                drive.min_cgpa = new_min_cgpa
+            except (ValueError, TypeError):
+                return jsonify({'msg': 'Invalid value for min_cgpa.'}), 400
 
     db.session.commit()
     payload = serialize_drive(drive)

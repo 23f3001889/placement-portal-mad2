@@ -1,7 +1,6 @@
 /**
  * AdminDrives.js — status + company filters (route-query-synced), select-all + bulk
  * approve/reject, plus quick per-row approve/reject.
- * Defines a global `AdminDrives` component consumed by router.js.
  */
 const AdminDrives = {
   data: function () {

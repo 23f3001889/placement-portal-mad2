@@ -1,12 +1,10 @@
 /**
- * DriveApplicants.js — route 'drives/:id/applications'.
- * Status tabs + CGPA/date sort (query-string-synced, same pattern as AdminDrives.js),
- * select-all + bulk status update, per-row status dropdown, resume blob download
- * (same content-type fix as AdminStudentDetail.js's viewResume), a dedicated
- * position/salary/joining-date modal for marking someone Selected (creates a
- * Placement server-side — not just another dropdown option), and a "Schedule
- * Interview" action per row that posts to /api/company/interviews.
- * Defines a global `DriveApplicants` component consumed by router.js.
+ * DriveApplicants.js — Applicants for a company drive.
+ * - Status tabs + CGPA/date sorting, synced with query params.
+ * - Bulk/per-row status updates and resume downloads.
+ * - Selected flow opens placement details and creates a Placement server-side.
+ * - Schedule Interview posts to /api/company/interviews.
+ * - Exposes global DriveApplicants for router.js.
  */
 const DriveApplicants = {
   data: function () {

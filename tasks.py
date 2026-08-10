@@ -32,7 +32,7 @@ celery = flask_app.celery
 def send_interview_reminders():
     """Runs daily at 8 AM via Celery Beat. Notifies (Notification row + email)
     every student with an interview still 'Scheduled' in the next 48 hours."""
-    from models import db, Interview, Notification
+    from models import db, Admin, Interview, Notification
     from constants import InterviewStatus
 
     now = datetime.now(timezone.utc)
@@ -45,6 +45,7 @@ def send_interview_reminders():
     ).all()
 
     sent = 0
+    emails_delivered = 0
     for iv in interviews:
         app_obj = iv.application
         student = app_obj.student if app_obj else None
@@ -63,10 +64,29 @@ def send_interview_reminders():
             user_id=student.id,
             message=message,
         ))
-        _send_email(student.email, 'Interview Reminder', message)
+        if _send_email(student.email, 'Interview Reminder', message):
+            emails_delivered += 1
         sent += 1
+
+    if sent > 0:
+        admin = Admin.query.first()
+        if admin:
+            if emails_delivered == sent:
+                summary = f'Interview reminders: ran successfully — all {sent} email(s) delivered.'
+            else:
+                summary = (
+                    f'Interview reminders: {emails_delivered}/{sent} emails delivered. '
+                    f'{sent - emails_delivered} skipped or failed (check SMTP config / '
+                    f'server logs) — in-app notifications were still created for all students.'
+                )
+            db.session.add(Notification(
+                user_type='admin',
+                user_id=admin.id,
+                message=summary,
+            ))
+
     db.session.commit()
-    return {'reminders_sent': sent}
+    return {'reminders_sent': sent, 'emails_delivered': emails_delivered}
 
 
 # ── Task 2 — monthly placement report (admin platform-wide + per-company) ──
@@ -81,7 +101,7 @@ def send_monthly_report():
     get a Notification, so the report is visible in dev even when SMTP
     isn't configured (email send is skipped, but the PDF file + in-app
     notification still exist)."""
-    from models import db, Application, Company, Notification, Placement, PlacementDrive, Student
+    from models import db, Admin, Application, Company, Notification, Placement, PlacementDrive, Student
     from constants import ApplicationStatus, ApprovalStatus
     from reports import render_admin_report_html, render_company_report_html, build_pdf_report
 
@@ -126,8 +146,19 @@ def send_monthly_report():
         f.write(admin_pdf)
 
     from config import Config
-    _send_report_email(Config.ADMIN_EMAIL, f'Monthly Placement Report — {month_label}',
-                        admin_html, admin_pdf, admin_pdf_name)
+    admin_email_ok = _send_report_email(Config.ADMIN_EMAIL, f'Monthly Placement Report — {month_label}',
+                                         admin_html, admin_pdf, admin_pdf_name)
+
+    admin = Admin.query.first()
+    if admin:
+        email_note = 'Emailed to you.' if admin_email_ok else \
+            'Email delivery is disabled or failed — SMTP not configured (check server config).'
+        db.session.add(Notification(
+            user_type='admin',
+            user_id=admin.id,
+            message=(f'Your monthly platform report for {month_label} is ready. '
+                     f'{email_note} Download: /static/reports/{admin_pdf_name}'),
+        ))
 
     # ── Each approved, non-blacklisted company: scoped to its own drives ─
     companies = Company.query.filter_by(
@@ -135,6 +166,7 @@ def send_monthly_report():
     ).all()
 
     companies_reported = 0
+    company_email_failures = 0
     for company in companies:
         drives = PlacementDrive.query.filter_by(company_id=company.id).all()
         drive_ids = [d.id for d in drives]
@@ -194,8 +226,10 @@ def send_monthly_report():
         with open(os.path.join(reports_dir, pdf_name), 'wb') as f:
             f.write(pdf)
 
-        _send_report_email(company.email, f'Your Monthly Placement Report — {month_label}',
-                            html, pdf, pdf_name)
+        company_email_ok = _send_report_email(company.email, f'Your Monthly Placement Report — {month_label}',
+                                               html, pdf, pdf_name)
+        if not company_email_ok:
+            company_email_failures += 1
 
         db.session.add(Notification(
             user_type='company',
@@ -204,6 +238,24 @@ def send_monthly_report():
                      f'Download: /static/reports/{pdf_name}'),
         ))
         companies_reported += 1
+
+    if companies_reported > 0 and admin:
+        if company_email_failures == 0:
+            company_summary = (
+                f'Monthly reports: ran successfully for all {companies_reported} '
+                f'eligible company(ies) — all report emails delivered.'
+            )
+        else:
+            company_summary = (
+                f'Monthly reports: generated for {companies_reported} company(ies), but '
+                f'{company_email_failures}/{companies_reported} report emails were not '
+                f'delivered (SMTP not configured or failed). Companies were still notified in-app.'
+            )
+        db.session.add(Notification(
+            user_type='admin',
+            user_id=admin.id,
+            message=company_summary,
+        ))
 
     db.session.commit()
     return {
@@ -371,14 +423,15 @@ def export_company_data_csv(company_id):
 # ── Shared email helpers ─────────────────────────────────────────────────────
 
 def _send_report_email(to_addr, subject, html_body, pdf_bytes, pdf_filename):
-    """Send an HTML email with a PDF attachment. Silently skips (logging to
-    stdout) if MAIL_USERNAME is not configured — in dev, check the saved
-    PDF under static/reports/ and/or the Notification record instead."""
+    """Send an HTML email with a PDF attachment. Returns True if the email was
+    actually sent, False if it was skipped (no MAIL_USERNAME configured) or
+    failed. Callers use this to surface delivery status to the admin instead
+    of it only ever appearing in server console logs."""
     from config import Config
 
     if not Config.MAIL_USERNAME:
         print(f'[EMAIL SKIPPED — no MAIL_USERNAME] To: {to_addr} | {subject} | attachment: {pdf_filename}')
-        return
+        return False
 
     from email.mime.multipart import MIMEMultipart
     from email.mime.application import MIMEApplication
@@ -400,22 +453,27 @@ def _send_report_email(to_addr, subject, html_body, pdf_bytes, pdf_filename):
 
     try:
         with smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT) as smtp:
-            smtp.starttls()
-            smtp.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
+            # Mailhog (dev) has no TLS/auth support — only do the real
+            # handshake against a real SMTP host.
+            if Config.MAIL_SERVER not in ('localhost', '127.0.0.1'):
+                smtp.starttls()
+                smtp.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
             smtp.send_message(msg)
+        return True
     except Exception as e:
         print(f'[EMAIL ERROR] {e}')
+        return False
 
 
 def _send_email(to_addr, subject, body):
-    """Send a plain-text email. Silently skips (logging to stdout) if
-    MAIL_USERNAME is not configured — in dev, check the Notification record
-    that was created alongside the call instead of looking for a real email."""
+    """Send a plain-text email. Returns True if actually sent, False if
+    skipped (no MAIL_USERNAME) or failed. See _send_report_email docstring —
+    same reasoning: callers surface this to the admin, not just the console."""
     from config import Config
 
     if not Config.MAIL_USERNAME:
         print(f'[EMAIL SKIPPED — no MAIL_USERNAME] To: {to_addr} | {subject}')
-        return
+        return False
 
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -424,8 +482,37 @@ def _send_email(to_addr, subject, body):
 
     try:
         with smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT) as smtp:
-            smtp.starttls()
-            smtp.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
+            if Config.MAIL_SERVER not in ('localhost', '127.0.0.1'):
+                smtp.starttls()
+                smtp.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
             smtp.send_message(msg)
+        return True
     except Exception as e:
         print(f'[EMAIL ERROR] {e}')
+        return False
+
+@celery.task
+def send_custom_broadcast(message, audience):
+    """audience: 'student' or 'company'. Demo task — simulates a slow job
+    (e.g. batch-processing recipients) with a fixed delay so the queueing
+    behaviour is visible on camera, then notifies every user of that type."""
+    import time
+    from models import db, Student, Company, Notification
+
+    time.sleep(5)  # simulate work — makes the async delay visible in the demo
+
+    if audience == 'student':
+        users = Student.query.all()
+    elif audience == 'company':
+        users = Company.query.all()
+    else:
+        return {'error': f'unknown audience {audience}'}
+
+    delivered = 0
+    for u in users:
+        db.session.add(Notification(user_type=audience, user_id=u.id, message=message))
+        if _send_email(u.email, 'Announcement from Placement Portal', message):
+            delivered += 1
+
+    db.session.commit()
+    return {'notified': len(users), 'emails_delivered': delivered}

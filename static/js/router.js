@@ -1,13 +1,8 @@
-/**
- * router.js — vue-router 3 routes + auth navigation guard.
- * Loads after Login.js / AdminLayout.js / AdminDashboard.js, before app.js.
- */
-const ComingSoon = {
-  template:
-    '<div class="container mt-4">' +
-    '  <p class="text-muted"><i class="bi bi-cone-striped me-2"></i>Coming soon.</p>' +
-    '</div>'
-};
+/*
+  router.js —  wiring diagram
+            - vue-router 3 routes + auth navigation guard
+            - Every route = URL path → which global component to show
+*/
 
 const routes = [
   { path: '/login', component: Login },
@@ -24,7 +19,9 @@ const routes = [
       { path: 'students', component: AdminStudents },
       { path: 'students/:id', component: AdminStudentDetail },
       { path: 'drives', component: AdminDrives },
-      { path: 'applications', component: AdminApplications }
+      { path: 'applications', component: AdminApplications },
+      { path: 'notifications', component: AdminNotifications },
+      { path: 'broadcast', component: AdminBroadcast }
     ]
   },
 

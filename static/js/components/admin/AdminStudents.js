@@ -1,7 +1,5 @@
-/**
- * AdminStudents.js — search/blacklist/delete students, link to student detail.
- * Defines a global `AdminStudents` component consumed by router.js.
- */
+//AdminStudents.js — search/blacklist/delete students, link to student detail.
+
 const AdminStudents = {
   data: function () {
     return {

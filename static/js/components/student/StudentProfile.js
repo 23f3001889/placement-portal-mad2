@@ -1,7 +1,7 @@
 /**
  * StudentProfile.js — GET/PUT /api/student/profile and POST /api/student/profile/resume.
- * Resume upload uses FormData (multipart), NOT the shared JSON window.api headers.
- * Defines a global `StudentProfile` component consumed by router.js.
+ * Resume upload uses FormData (multipart); the browser sets the boundary automatically
+ * when Content-Type is not set — handled by window.api.post.
  */
 const StudentProfile = {
   data: function () {
@@ -80,8 +80,8 @@ const StudentProfile = {
       self.error = '';
       self.successMsg = '';
 
-      // Must use FormData — don't pass through window.api's default Content-Type.
-      // Let axios set the multipart boundary automatically.
+      // Must use FormData — pass { headers: { 'Content-Type': undefined } } so the
+      // browser sets the correct multipart/form-data boundary automatically.
       var formData = new FormData();
       formData.append('resume', self.resumeFile);
 

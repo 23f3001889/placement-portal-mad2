@@ -2,7 +2,6 @@
  * Register.js — student/company self-registration, mirrors the old
  * templates/auth/register.html fields. Wired to the existing (already-working)
  * POST /api/auth/register/student and POST /api/auth/register/company endpoints.
- * Defines a global `Register` component consumed by router.js.
  */
 const Register = {
   data: function () {

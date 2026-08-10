@@ -1,6 +1,5 @@
 /**
  * Login.js — shared login page for admin/company/student.
- * Defines a global `Login` component consumed by router.js.
  */
 const Login = {
   data: function () {

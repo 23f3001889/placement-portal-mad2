@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 from constants import ApplicationStatus, DriveStatus, ApprovalStatus, InterviewStatus, OfferStatus
@@ -67,6 +68,7 @@ class PlacementDrive(db.Model):
     job_title            = db.Column(db.String(150), nullable=False)
     job_description      = db.Column(db.Text, nullable=False)
     eligibility_criteria = db.Column(db.Text)
+    min_cgpa             = db.Column(db.Float, nullable=True)  # structured eligibility check (optional)
     required_skills      = db.Column(db.Text)
     salary_range         = db.Column(db.String(100))
     application_deadline = db.Column(db.Date, nullable=False)
@@ -111,7 +113,7 @@ class ApplicationStatusLog(db.Model):
     to_status       = db.Column(db.String(30), nullable=False)
     changed_by_role = db.Column(db.String(20))          # 'student' | 'company' | 'system'
     changed_by_id   = db.Column(db.Integer)             # FK-less; role determines which table
-    note            = db.Column(db.Text)                # optional rejection reason etc.
+    note            = db.Column(db.Text)                # optional rejection reason etc
     changed_at      = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 

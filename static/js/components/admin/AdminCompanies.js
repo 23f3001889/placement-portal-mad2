@@ -1,7 +1,6 @@
 /**
  * AdminCompanies.js — search/filter/approve/reject/blacklist/delete companies,
  * plus bulk approve/reject for Pending rows. Filters live in the route query string.
- * Defines a global `AdminCompanies` component consumed by router.js.
  */
 const AdminCompanies = {
   data: function () {

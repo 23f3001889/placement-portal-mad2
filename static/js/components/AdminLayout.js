@@ -1,6 +1,5 @@
 /**
  * AdminLayout.js — navbar shell wrapping all /admin/* pages.
- * Defines a global `AdminLayout` component consumed by router.js.
  */
 const AdminLayout = {
   methods: {
@@ -41,6 +40,17 @@ const AdminLayout = {
     '            </ul>' +
     '          </li>' +
     '' +
+    '          <li class="nav-item">' +
+    '            <router-link class="nav-link" to="/admin/notifications">' +
+    '              <i class="bi bi-bell"></i> Notifications' +
+    '            </router-link>' +
+    '          </li>' +
+    '' +
+    '       <li class="nav-item">' +
+'            <router-link class="nav-link" to="/admin/broadcast">' +
+'              <i class="bi bi-megaphone"></i> Broadcast' +
+'            </router-link>' +
+'          </li>' +
     '          <li class="nav-item ms-2">' +
     '            <button class="btn btn-outline-danger btn-sm" @click="logout">' +
     '              <i class="bi bi-box-arrow-right"></i> Logout' +

@@ -4,6 +4,7 @@ Replaces the Jinja2/Flask-Login version from MAD1.
 All endpoints return JSON; no render_template calls remain.
 """
 import os
+from datetime import date
 
 from flask import Blueprint, jsonify, request, send_from_directory, current_app
 from flask_jwt_extended import get_jwt_identity
@@ -81,6 +82,7 @@ def serialize_drive(d):
         'job_title': d.job_title,
         'job_description': d.job_description,
         'eligibility_criteria': d.eligibility_criteria,
+        'min_cgpa': d.min_cgpa,
         'required_skills': d.required_skills,
         'salary_range': d.salary_range,
         'location': d.location,
@@ -254,6 +256,17 @@ def upload_resume():
     filename = secure_filename(f"student_{student.id}_{file.filename}")
     upload_folder = current_app.config['UPLOAD_FOLDER']
     os.makedirs(upload_folder, exist_ok=True)
+
+    # Remove the previous resume file (if any) so disk usage doesn't grow
+    # unbounded every time a student re-uploads.
+    if student.resume_path:
+        old_path = os.path.join(upload_folder, os.path.basename(student.resume_path))
+        if os.path.exists(old_path):
+            try:
+                os.remove(old_path)
+            except OSError:
+                pass  # best-effort cleanup; never block the new upload on this
+
     file.save(os.path.join(upload_folder, filename))
     student.resume_path = filename
     db.session.commit()
@@ -296,22 +309,21 @@ def list_drives():
     if not q:
         # Only the unfiltered "all approved drives" view is cacheable — it's
         # identical for every student and is the single most-hit request
-        # pattern (every student landing on Browse Drives with no query yet
-        # typed). Cached manually (not via @cache.cached on the whole view)
+        # pattern. Cached manually (not via @cache.cached on the whole view)
         # because the view's response also bundles the per-student
         # applied_drive_ids above, which must stay fresh on every request.
         cache_key = student_drives_key('')
         serialized = safe_get(cache_key)
         if serialized is None:
+            import time
+            time.sleep(2)  # Artificial delay on cache miss for demo visibility
             drives = PlacementDrive.query.filter_by(
                 status=DriveStatus.APPROVED
             ).order_by(PlacementDrive.created_at.desc()).all()
             serialized = [serialize_drive(d) for d in drives]
             safe_set(cache_key, serialized, timeout=300)
     else:
-        # Search queries are cheap one-off `ilike` lookups and are never
-        # cached — caching every distinct search term a student could type
-        # isn't worth the memory, and this keeps the cache surface small.
+        # Search queries are cheap one-off `ilike` lookups and are never cached 
         like = f'%{q}%'
         query = PlacementDrive.query.filter_by(status=DriveStatus.APPROVED).join(Company).filter(
             db.or_(
@@ -364,6 +376,13 @@ def apply():
         return jsonify({'msg': 'Drive not found.'}), 404
     if drive.status != DriveStatus.APPROVED:
         return jsonify({'msg': 'This drive is not open for applications.'}), 400
+    if drive.application_deadline and date.today() > drive.application_deadline:
+        return jsonify({'msg': 'The application deadline for this drive has passed.'}), 400
+    if drive.min_cgpa is not None and (student.cgpa is None or student.cgpa < drive.min_cgpa):
+        return jsonify({
+            'msg': f'You do not meet the eligibility criteria for this drive '
+                   f'(requires CGPA >= {drive.min_cgpa}).'
+        }), 400
 
     application = Application(
         student_id=student.id,

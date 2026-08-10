@@ -1,11 +1,11 @@
-/**
- * AdminStudentDetail.js — student profile card + application history + resume download.
- * Defines a global `AdminStudentDetail` component consumed by router.js.
- *
- * Resume note: /api/admin/students/:id/resume is a JWT-protected file route. A plain
- * <a href> click won't send the Authorization header, so "View Resume" instead fetches
- * the file via axios (which does attach the header) as a blob and opens it via a
- * short-lived object URL.
+/*
+AdminStudentDetail.js — student profile card + application history + resume download.
+ 
+Resume note:
+   - /api/admin/students/:id/resume is a JWT-protected file route.
+   - A plain <a href> click won't send the Authorization header,
+     so "View Resume" so fetch via window.api.get as a blob and open
+     using a temporary object URL to include the Authorization header.
  */
 const AdminStudentDetail = {
   data: function () {
