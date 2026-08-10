@@ -26,7 +26,7 @@ flask_app = create_app()
 celery = flask_app.celery
 
 
-# ── Task 1 — daily interview reminders ──────────────────────────────────────
+# Task 1: Daily interview reminders
 
 @celery.task(name='tasks.send_interview_reminders')
 def send_interview_reminders():
@@ -89,7 +89,7 @@ def send_interview_reminders():
     return {'reminders_sent': sent, 'emails_delivered': emails_delivered}
 
 
-# ── Task 2 — monthly placement report (admin platform-wide + per-company) ──
+# Task 2: Monthly placement report
 
 @celery.task(name='tasks.send_monthly_report')
 def send_monthly_report():
@@ -116,7 +116,7 @@ def send_monthly_report():
     def _in_month(column):
         return db.and_(column >= first_prev, column < first_this)
 
-    # ── Admin: platform-wide ────────────────────────────────────────────
+    # Admin report
     admin_stats = {
         'new_apps': Application.query.filter(_in_month(Application.applied_at)).count(),
         'selected': Application.query.filter(
@@ -160,7 +160,7 @@ def send_monthly_report():
                      f'{email_note} Download: /static/reports/{admin_pdf_name}'),
         ))
 
-    # ── Each approved, non-blacklisted company: scoped to its own drives ─
+    # Company reports
     companies = Company.query.filter_by(
         approval_status=ApprovalStatus.APPROVED, is_blacklisted=False
     ).all()
@@ -265,7 +265,7 @@ def send_monthly_report():
     }
 
 
-# ── Task 3 — user-triggered CSV export of a student's application history ──
+# Task 3: CSV export of student application history
 
 @celery.task(name='tasks.export_applications_csv')
 def export_applications_csv(student_id):
@@ -316,8 +316,7 @@ def export_applications_csv(student_id):
     return {'file': filepath, 'rows': len(apps)}
 
 
-# ── Task 4 — user-triggered CSV export of a company's applicant/placement
-#            history + analytics ─────────────────────────────────────────────
+# Task 4: CSV export of company data
 
 @celery.task(name='tasks.export_company_data_csv')
 def export_company_data_csv(company_id):
@@ -350,7 +349,7 @@ def export_company_data_csv(company_id):
     output = io.StringIO()
     writer = csv.writer(output)
 
-    # ── Section 1: Applicants ────────────────────────────────────────────
+    # Applicants
     writer.writerow(['=== APPLICANTS ==='])
     writer.writerow([
         'Application ID', 'Student Name', 'Student Email', 'Drive', 'Location',
@@ -368,7 +367,7 @@ def export_company_data_csv(company_id):
             a.offer_status,
         ])
 
-    # ── Section 2: Placements ────────────────────────────────────────────
+    # Placements
     writer.writerow([])
     writer.writerow(['=== PLACEMENTS ==='])
     writer.writerow(['Placement ID', 'Student Name', 'Position', 'Salary', 'Joining Date', 'Placed On'])
@@ -383,7 +382,7 @@ def export_company_data_csv(company_id):
             p.placed_at.strftime('%Y-%m-%d %H:%M') if p.placed_at else '',
         ])
 
-    # ── Section 3: Analytics summary ─────────────────────────────────────
+    # Analytics summary
     status_counts = {}
     for a in applications:
         status_counts[a.status] = status_counts.get(a.status, 0) + 1
@@ -420,7 +419,7 @@ def export_company_data_csv(company_id):
     return {'file': filepath, 'applications': total_apps, 'placements': len(placements)}
 
 
-# ── Shared email helpers ─────────────────────────────────────────────────────
+# Email helpers
 
 def _send_report_email(to_addr, subject, html_body, pdf_bytes, pdf_filename):
     """Send an HTML email with a PDF attachment. Returns True if the email was

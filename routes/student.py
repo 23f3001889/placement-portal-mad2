@@ -56,7 +56,7 @@ def current_student():
     return Student.query.get(int(get_jwt_identity()))
 
 
-# ── Serializers ────────────────────────────────────────────────────────────────
+# Serializers
 
 def serialize_student(s):
     return {
@@ -154,7 +154,7 @@ def serialize_placement(p):
     }
 
 
-# ── Dashboard ──────────────────────────────────────────────────────────────────
+# Dashboard
 
 @student_bp.route('/dashboard')
 @student_required
@@ -201,7 +201,7 @@ def dashboard():
     }), 200
 
 
-# ── Profile ────────────────────────────────────────────────────────────────────
+# Profile
 
 @student_bp.route('/profile')
 @student_required
@@ -289,7 +289,7 @@ def download_resume():
     )
 
 
-# ── Drives ─────────────────────────────────────────────────────────────────────
+# Drives
 
 @student_bp.route('/drives')
 @student_required
@@ -360,7 +360,7 @@ def get_drive(drive_id):
     return jsonify(payload), 200
 
 
-# ── Applications ───────────────────────────────────────────────────────────────
+# Applications
 
 @student_bp.route('/applications', methods=['POST'])
 @student_required
@@ -524,7 +524,7 @@ def respond_offer(app_id):
     return jsonify(payload), 200
 
 
-# ── Notifications ──────────────────────────────────────────────────────────────
+# Notifications
 
 @student_bp.route('/notifications')
 @student_required
@@ -543,7 +543,7 @@ def list_notifications():
     return jsonify([serialize_notification(n) for n in notifs]), 200
 
 
-# ── Interviews ─────────────────────────────────────────────────────────────────
+# Interviews
 
 @student_bp.route('/interviews')
 @student_required
@@ -559,7 +559,7 @@ def list_interviews():
     return jsonify([serialize_interview(i) for i in interviews]), 200
 
 
-# ── Placements ─────────────────────────────────────────────────────────────────
+# Placements
 
 @student_bp.route('/placements')
 @student_required

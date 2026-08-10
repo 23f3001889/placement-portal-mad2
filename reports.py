@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from fpdf import FPDF
 
 
-# ── HTML Rendering ───────────────────────────────────────────────────────────
+# HTML Rendering
 
 def _html_shell(title, month_label, rows_html, table_rows_html=''):
     return f"""\
@@ -90,7 +90,7 @@ def render_company_report_html(month_label, company_name, stats, per_drive_rows)
     return _html_shell(f'Monthly Placement Report — {company_name}', month_label, rows, drive_table)
 
 
-# ── PDF Rendering (fpdf2) ─────────────────────────────────────────────────────
+# PDF Rendering (fpdf2)
 
 class _ReportPDF(FPDF):
     def header(self):

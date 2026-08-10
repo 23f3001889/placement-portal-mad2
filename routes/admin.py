@@ -11,7 +11,7 @@ import os
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
 
-# ── Serializers ────────────────────────────────────────────────────────────
+# Serializers
 
 def serialize_company(c):
     return {
@@ -102,7 +102,7 @@ def serialize_log(entry):
     }
 
 
-# ── Dashboard ────────────────────────────────────────────────────────────
+# Dashboard
 
 @admin_bp.route('/dashboard')
 @admin_required
@@ -135,7 +135,7 @@ def dashboard():
     }), 200
 
 
-# ── Companies ────────────────────────────────────────────────────────────
+# Companies
 
 @admin_bp.route('/companies')
 @admin_required
@@ -247,7 +247,7 @@ def bulk_company_status():
                      'updated_ids': updated_ids, 'new_status': new_status}), 200
 
 
-# ── Drives ───────────────────────────────────────────────────────────────
+# Drives
 
 @admin_bp.route('/drives')
 @admin_required
@@ -329,7 +329,7 @@ def bulk_drive_status():
                      'updated_ids': updated_ids, 'new_status': new_status}), 200
 
 
-# ── Students ─────────────────────────────────────────────────────────────
+# Students
 
 @admin_bp.route('/students')
 @admin_required
@@ -416,7 +416,7 @@ def download_student_resume(student_id):
     )
 
 
-# ── Applications ─────────────────────────────────────────────────────────
+# Applications
 
 @admin_bp.route('/applications')
 @admin_required
@@ -439,7 +439,7 @@ def application_history(app_id):
     return jsonify([serialize_log(e) for e in app.status_log]), 200
 
 
-# ── Search ───────────────────────────────────────────────────────────────
+# Search
 
 @admin_bp.route('/search')
 @admin_required
@@ -478,7 +478,7 @@ def search():
 
     return jsonify({'msg': "type must be 'company' or 'student'."}), 400
 
-# ── Notifications ────────────────────────────────────────────────────────────
+# Notifications
 # Admin-facing in-app notifications — currently used for backend-job status
 # (e.g. "email delivery disabled/failed" from tasks.py) so failures surface
 # somewhere visible instead of only ever appearing in server console logs.

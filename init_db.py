@@ -11,7 +11,7 @@ import random
 app = create_app()
 
 with app.app_context():
-    # ── Setup ──────────────────────────────────────────────────────────────
+    # Setup
     os.makedirs('static/uploads/resumes', exist_ok=True)
     db.drop_all()
     db.create_all()
@@ -19,7 +19,7 @@ with app.app_context():
 
     default_password = generate_password_hash('password123')
 
-    # ── Admin ───────────────────────────────────────────────────────────────
+    # Admin
     admin = Admin(
         username='admin',
         email='admin@placementportal.com',
@@ -27,7 +27,7 @@ with app.app_context():
     )
     db.session.add(admin)
 
-    # ── Companies ───────────────────────────────────────────────────────────
+    # Companies
     companies_data = [
         ("TechNova Solutions",  "hr@technova.com",             "Software", "Approved", False),
         ("Global Finance Inc",  "careers@globalfinance.com",   "Finance",  "Approved", False),
@@ -51,7 +51,7 @@ with app.app_context():
 
     db.session.commit()
 
-    # ── Students ────────────────────────────────────────────────────────────
+    # Students
     skills_pool  = ["Python", "Java", "C++", "React", "SQL"]
     demo_resumes = ["resume1.pdf", "resume2.pdf", "resume3.pdf", "resume4.pdf", "resume5.pdf"]
     students     = []
@@ -82,7 +82,7 @@ with app.app_context():
     db.session.commit()
     print(f"{len(students)} students created.")
 
-    # ── Placement Drives (Approved) ─────────────────────────────────────────
+    # Placement Drives (Approved)
     today              = date.today()
     approved_companies = [c for c in companies if c.approval_status == 'Approved']
     drives             = []
@@ -111,7 +111,7 @@ with app.app_context():
         db.session.add(drive)
         drives.append(drive)
 
-    # ── Extra drives: Pending / Rejected / Closed ──────────────────────────
+    # Extra drives: Pending / Rejected / Closed
     # Gives admin approval queue something to show on first load
     extra_drives = [
         PlacementDrive(
@@ -156,7 +156,7 @@ with app.app_context():
     db.session.commit()
     print(f"{len(drives)} approved drives + {len(extra_drives)} extra drives (Pending/Rejected/Closed) created.")
 
-    # ── Applications + Status Log ───────────────────────────────────────────
+    # Applications + Status Log
     # Only seed simple statuses here; richer states are forced explicitly below.
     # Student 10 (students[-1]) intentionally gets ZERO applications → tests empty-state UI.
     students_with_apps = students[:-1]
@@ -210,7 +210,7 @@ with app.app_context():
     print(f"{len(apps_to_add)} applications created.")
     print(f"{log_rows} status log rows seeded.")
 
-    # ── Force 3 applications into fully demo-able states ───────────────────
+    # Seed specific application states
     # Pick from students who have a resume so the demo profile looks complete.
     eligible_apps = [a for a in apps_to_add if a.student.resume_path]
     sample_apps   = random.sample(eligible_apps, min(3, len(eligible_apps)))
@@ -218,7 +218,7 @@ with app.app_context():
     for i, app_entry in enumerate(sample_apps):
 
         if i == 0:
-            # ── Interview Scheduled (with real Interview row) ────────────────
+            # Interview Scheduled
             # Full log chain: Applied → Shortlisted → Interview Scheduled
             app_entry.status = ApplicationStatus.INTERVIEW_SCHEDULED
             for from_s, to_s in [
@@ -255,7 +255,7 @@ with app.app_context():
             ))
 
         elif i == 1:
-            # ── Selected + Offer Accepted (with real Placement row) ──────────
+            # Selected + Offer Accepted
             # Full log chain: Applied → Shortlisted → Interview Scheduled → Selected
             app_entry.status       = ApplicationStatus.SELECTED
             app_entry.offer_status = OfferStatus.ACCEPTED
@@ -294,7 +294,7 @@ with app.app_context():
             ))
 
         else:
-            # ── Selected + Offer Pending (student hasn't responded yet) ──────
+            # Selected + Offer Pending
             # Shorter chain: Applied → Shortlisted → Selected
             app_entry.status       = ApplicationStatus.SELECTED
             app_entry.offer_status = OfferStatus.PENDING
@@ -329,7 +329,7 @@ with app.app_context():
     print("3 demo-state applications seeded "
           "(Interview Scheduled, Selected+Accepted, Selected+Pending).")
 
-    # ── Blacklist one student and one company for demo ─────────────────────
+    # Blacklist demo accounts
     # students[2] = Student 3 (has profile + some applications — good demo target)
     # companies[0] = TechNova Solutions (Approved, so blacklist behaviour is visible)
     students[2].is_blacklisted = True

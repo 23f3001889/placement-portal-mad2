@@ -48,7 +48,7 @@ def _serialize_log(entry):
     }
 
 
-# ── Serializers ────────────────────────────────────────────────────────────
+# Serializers
 
 def serialize_company(c):
     return {
@@ -142,7 +142,7 @@ def _cancel_scheduled_interviews(application):
             interview.status = InterviewStatus.CANCELLED
 
 
-# ── Dashboard / Profile ──────────────────────────────────────────────────
+# Dashboard / Profile
 
 @company_bp.route('/dashboard')
 @company_required
@@ -187,7 +187,7 @@ def update_profile():
     return jsonify(payload), 200
 
 
-# ── Drives ───────────────────────────────────────────────────────────────
+# Drives
 
 @company_bp.route('/drives', methods=['POST'])
 @company_required
@@ -352,7 +352,7 @@ def delete_drive(drive_id):
     return jsonify({'msg': 'Drive deleted.', 'id': drive_id}), 200
 
 
-# ── Applications ─────────────────────────────────────────────────────────
+# Applications
 
 @company_bp.route('/drives/<int:drive_id>/applications')
 @company_required
@@ -551,7 +551,7 @@ def select_application(app_id):
     return jsonify(payload), 200
 
 
-# ── Interviews ───────────────────────────────────────────────────────────
+# Interviews
 
 @company_bp.route('/interviews', methods=['POST'])
 @company_required
@@ -657,7 +657,7 @@ def update_interview(interview_id):
     return jsonify(payload), 200
 
 
-# ── Student profile / resume (scoped to this company's applicants) ────────
+# Student profile / resume
 
 def _has_applied_to_company(company_id, student_id):
     return Application.query.join(PlacementDrive).filter(
@@ -712,7 +712,7 @@ def view_resume(student_id):
     )
 
 
-# ── Export (Milestone 7 — Celery background job) ────────────────────────────
+# Export
 
 @company_bp.route('/export', methods=['POST'])
 @company_required
@@ -750,7 +750,7 @@ def export_status(task_id):
     }), 200
 
 
-# ── Notifications ─────────────────────────────────────────────────────────
+# Notifications
 
 @company_bp.route('/notifications')
 @company_required
