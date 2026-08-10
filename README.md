@@ -65,3 +65,7 @@ python app.py
 - API response caching via Redis (hit `/cacheremove` to flush during dev)
 - Background tasks: interview reminders and monthly reports via Celery Beat
 - Local email testing via Mailhog (`localhost:8025`)
+
+## ER Diagram
+
+View the database ER diagram: [ER_diagram.png](ER_diagram.png)
