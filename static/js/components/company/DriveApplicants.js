@@ -328,8 +328,8 @@ const DriveApplicants = {
     '              </tr>' +
     '            </thead>' +
     '            <tbody>' +
-    '              <template v-for="(a, idx) in applications" :key="a.id">' +
-    '              <tr>' +
+    '              <template v-for="(a, idx) in applications">' +
+    '              <tr :key="a.id">' +
     '                <td><input type="checkbox" class="form-check-input" :value="a.id" v-model="selected"></td>' +
     '                <td class="text-muted small">{{ idx + 1 }}</td>' +
     '                <td>' +

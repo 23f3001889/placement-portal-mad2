@@ -247,10 +247,10 @@ const StudentApplications = {
     '              <th>Cover Letter</th><th>My Notes</th>' +
     '            </tr></thead>' +
     '            <tbody>' +
-    '              <template v-for="(a, idx) in applications" :key="a.id">' +
+    '              <template v-for="(a, idx) in applications">' +
 
     '                <!-- Main row -->' +
-    '                <tr>' +
+    '                <tr :key="a.id">' +
     '                  <td class="text-muted small">{{ idx + 1 }}</td>' +
     '                  <td class="fw-semibold">' +
     '                    <router-link :to="\'/student/drives/\' + a.drive_id" class="text-decoration-none text-dark">{{ a.job_title }}</router-link>' +
