@@ -53,6 +53,12 @@ const StudentLayout = {
     '          </li>' +
     '' +
     '          <li class="nav-item">' +
+    '            <router-link class="nav-link" to="/student/notifications">' +
+    '              <i class="bi bi-bell"></i> Notifications' +
+    '            </router-link>' +
+    '          </li>' +
+    '' +
+    '          <li class="nav-item">' +
     '            <router-link class="nav-link" to="/student/profile">' +
     '              <i class="bi bi-person"></i> Profile' +
     '            </router-link>' +
